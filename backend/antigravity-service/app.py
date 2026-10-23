@@ -9,8 +9,8 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.routing import Route
 
-UPLOAD_ROOT = Path(os.environ.get("SMARTASSUR_UPLOAD_ROOT", "/www/wwwroot/SMARTASSUR_MOBILE/backend/storage/uploads")).resolve()
-PROJECT_ROOT = Path("/www/wwwroot/SMARTASSUR_MOBILE")
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+UPLOAD_ROOT = Path(os.environ.get("SMARTASSUR_UPLOAD_ROOT", PROJECT_ROOT / "backend" / "storage" / "uploads")).resolve()
 AGY_BIN = os.environ.get("ANTIGRAVITY_CLI", "/root/.local/bin/agy")
 EVALUATION_LIMIT = asyncio.Semaphore(2)
 
