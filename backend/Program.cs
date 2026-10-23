@@ -82,7 +82,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAllOrigins", policy =>
     {
         // Le navigateur passe par le proxy Next (même origine) ; seules ces origines sont acceptées en direct.
-        policy.WithOrigins("https://smartassur.kooralink.ma", "http://localhost:3050")
+        policy.WithOrigins("https://smartassur.kooralink.ma", "https://smartassur.assurport.com", "http://localhost:3050")
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();
