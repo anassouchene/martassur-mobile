@@ -1,0 +1,6 @@
+@SmartAssur.Api_HostAddress = http://localhost:5033
+
+GET {{SmartAssur.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

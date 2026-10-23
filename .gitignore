@@ -1,0 +1,23 @@
+# Dépendances et builds
+node_modules/
+frontend/.next/
+backend/bin/
+backend/obj/
+backend/publish/
+backend/antigravity-service/.venv/
+__pycache__/
+*.pyc
+
+# Secrets locaux (modèle : backend/appsettings.Local.example.json)
+backend/appsettings.Local.json
+.env
+.env.*
+
+# Données personnelles : photos des dossiers
+backend/storage/uploads/*
+!backend/storage/uploads/.gitkeep
+
+# Divers
+*.log
+.DS_Store
+*.tsbuildinfo
