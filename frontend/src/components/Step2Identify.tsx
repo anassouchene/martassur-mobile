@@ -297,14 +297,14 @@ export const Step2Identify: React.FC<Step2IdentifyProps> = ({ initialData, detec
           </div>
         </div>
       )}
-      {functionalTests ? <FunctionalTestsCard report={functionalTests} /> : rawDiagnostic?.source === 'WEB_BROWSER' && (
+      {functionalTests ? <FunctionalTestsCard report={functionalTests} collapsible /> : rawDiagnostic?.source === 'WEB_BROWSER' && (
         <div className="mb-5 flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 p-3 text-xs text-blue-800">
           <RefreshCw className="h-4 w-4 shrink-0 animate-spin" />
           <span>Sur le téléphone, touchez <strong>« Lancer le diagnostic »</strong> : caméras, micro, haut-parleur, capteurs et écran tactile sont testés, les résultats s’afficheront ici.</span>
         </div>
       )}
       {diagnostic ? (
-        <DeviceDiagnosticCard diagnostic={diagnostic} maskedImeis={detectedDevice?.usbImeisMasked} />
+        <DeviceDiagnosticCard diagnostic={diagnostic} maskedImeis={detectedDevice?.usbImeisMasked} collapsible />
       ) : detectedDevice?.verifiedViaUsb && (
         // Brouillon antérieur au diagnostic complet : données USB minimales.
         <div className="mb-5 rounded-xl border border-indigo-200 bg-indigo-50 p-3 text-sm text-indigo-950">

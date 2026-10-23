@@ -1,13 +1,15 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Activity, AlertTriangle, Battery, Cpu, HardDrive, MemoryStick, Monitor, ShieldCheck, ShieldAlert, Smartphone, Fingerprint } from 'lucide-react';
+import { Activity, AlertTriangle, ChevronDown, Battery, Cpu, HardDrive, MemoryStick, Monitor, ShieldCheck, ShieldAlert, Smartphone, Fingerprint } from 'lucide-react';
 import { DeviceDiagnostic, formatCapacity } from '@/lib/deviceDiagnostic';
 
 interface DeviceDiagnosticCardProps {
   diagnostic: DeviceDiagnostic;
   /** IMEI lus via USB, masqués (ex. 86**********605). */
   maskedImeis?: string[];
+  /** Repliable par un clic sur le titre (étape 2). Ouvert par défaut seulement s'il y a un point d'attention. */
+  collapsible?: boolean;
 }
 
 const Row: React.FC<{ icon: React.ReactNode; label: string; value?: React.ReactNode; hint?: string }> = ({ icon, label, value, hint }) => (
@@ -20,7 +22,7 @@ const Row: React.FC<{ icon: React.ReactNode; label: string; value?: React.ReactN
   </div>
 );
 
-export const DeviceDiagnosticCard: React.FC<DeviceDiagnosticCardProps> = ({ diagnostic, maskedImeis }) => {
+export const DeviceDiagnosticCard: React.FC<DeviceDiagnosticCardProps> = ({ diagnostic, maskedImeis, collapsible }) => {
   // Le navigateur ne publie qu'un code modèle (2209116AG, SM-S911U) : nom commercial via le catalogue TAC.
   const [catalog, setCatalog] = useState<{ brand: string; marketName: string } | null>(null);
   useEffect(() => {
@@ -47,18 +49,36 @@ export const DeviceDiagnosticCard: React.FC<DeviceDiagnosticCardProps> = ({ diag
     battery.voltageMv ? `${(battery.voltageMv / 1000).toFixed(2)} V` : null,
   ].filter(Boolean).join(' · ') : '';
   const bootOk = d.verifiedBootState === 'green' && d.bootloaderLocked !== false;
+  // Point d'attention = avertissement réel (hors mention générique « données du navigateur »), root ou système modifié.
+  const alerts = d.warnings.filter((warning) => !warning.startsWith('Données fournies par le navigateur'));
+  const needsAttention = alerts.length > 0 || d.hardware?.rooted === true || (isUsb && d.verifiedBootState != null && !bootOk);
+  const [open, setOpen] = useState<boolean>(!collapsible || needsAttention);
+  const deviceLabel = d.marketName || [d.brand, d.model].filter(Boolean).join(' ') || 'Appareil';
 
   return (
     <div className="mb-5 rounded-2xl border border-indigo-200 bg-indigo-50/60 p-4 text-xs">
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <p className="flex items-center gap-1.5 text-sm font-bold text-indigo-950">
-          <Activity className="h-4 w-4 text-indigo-600" />
-          Diagnostic de l’appareil {isUsb ? 'via USB (WebADB)' : 'via le navigateur du téléphone'}
-        </p>
-        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${isUsb ? 'bg-indigo-600 text-white' : 'bg-amber-100 text-amber-800'}`}>
-          {isUsb ? 'Lu sur l’appareil' : 'Indicatif'}
+      <button type="button" onClick={() => collapsible && setOpen(!open)} aria-expanded={open} disabled={!collapsible}
+        className={`flex w-full items-center justify-between gap-2 text-left ${open ? 'mb-3' : ''} ${collapsible ? 'cursor-pointer' : 'cursor-default'}`}>
+        <span className="min-w-0">
+          <span className="flex items-center gap-1.5 text-sm font-bold text-indigo-950">
+            <Activity className="h-4 w-4 shrink-0 text-indigo-600" />
+            Diagnostic de l’appareil {isUsb ? 'via USB (WebADB)' : 'via le navigateur du téléphone'}
+          </span>
+          {!open && (
+            <span className="mt-0.5 block truncate pl-5 text-[11px] text-indigo-800">
+              {deviceLabel}{alerts.length ? ` · ${alerts.length} point(s) d’attention` : ''}
+            </span>
+          )}
         </span>
-      </div>
+        <span className="flex shrink-0 items-center gap-2">
+          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${isUsb ? 'bg-indigo-600 text-white' : 'bg-amber-100 text-amber-800'}`}>
+            {isUsb ? 'Lu sur l’appareil' : 'Indicatif'}
+          </span>
+          {collapsible && <ChevronDown className={`h-4 w-4 text-indigo-600 transition-transform ${open ? 'rotate-180' : ''}`} />}
+        </span>
+      </button>
+
+      {open && (<>
 
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <Row icon={<Smartphone className="h-3.5 w-3.5" />} label="Appareil"
@@ -124,6 +144,7 @@ export const DeviceDiagnosticCard: React.FC<DeviceDiagnosticCardProps> = ({ diag
           ))}
         </ul>
       )}
+      </>)}
     </div>
   );
 };

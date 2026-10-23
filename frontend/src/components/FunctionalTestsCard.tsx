@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { CheckCircle2, XCircle, AlertTriangle, MinusCircle, Stethoscope } from 'lucide-react';
+import React, { useState } from 'react';
+import { CheckCircle2, XCircle, AlertTriangle, MinusCircle, Stethoscope, ChevronDown } from 'lucide-react';
 import { FunctionalTestReport, TestStatus } from '@/lib/functionalTests';
 
 const ICON: Record<TestStatus, React.ReactNode> = {
@@ -14,18 +14,26 @@ const ICON: Record<TestStatus, React.ReactNode> = {
 const STATUS_TEXT: Record<TestStatus, string> = { pass: 'Fonctionne', fail: 'Défaillant', warn: 'À vérifier', unsupported: 'Non vérifiable', skipped: 'Non testé' };
 
 /** Résultats des tests de fonctionnement (téléphone, PC à l'étape 2, espace gestionnaire). */
-export const FunctionalTestsCard: React.FC<{ report: FunctionalTestReport }> = ({ report }) => {
+export const FunctionalTestsCard: React.FC<{ report: FunctionalTestReport; collapsible?: boolean }> = ({ report, collapsible }) => {
   const tested = report.tests.filter((test) => test.status !== 'unsupported' && test.status !== 'skipped');
   const working = tested.filter((test) => test.status === 'pass').length;
   const failed = report.tests.filter((test) => test.status === 'fail').length;
+  const toCheck = report.tests.filter((test) => test.status === 'warn').length;
+  // Replié par défaut quand tout fonctionne ; ouvert dès qu'un test est défaillant ou à vérifier.
+  const [open, setOpen] = useState<boolean>(!collapsible || failed + toCheck > 0);
   return (
     <div className={`mb-5 rounded-2xl border p-4 text-xs ${failed ? 'border-red-200 bg-red-50/50' : 'border-emerald-200 bg-emerald-50/50'}`}>
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <p className="flex items-center gap-1.5 text-sm font-bold text-slate-900"><Stethoscope className="h-4 w-4 text-blue-600" />Tests de fonctionnement</p>
-        <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${failed ? 'bg-red-600 text-white' : 'bg-emerald-600 text-white'}`}>
-          {working}/{tested.length} fonctionnent
+      <button type="button" onClick={() => collapsible && setOpen(!open)} aria-expanded={open} disabled={!collapsible}
+        className={`flex w-full items-center justify-between gap-2 text-left ${open ? 'mb-3' : ''} ${collapsible ? 'cursor-pointer' : 'cursor-default'}`}>
+        <span className="flex items-center gap-1.5 text-sm font-bold text-slate-900"><Stethoscope className="h-4 w-4 text-blue-600" />Tests de fonctionnement</span>
+        <span className="flex shrink-0 items-center gap-2">
+          <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${failed ? 'bg-red-600 text-white' : 'bg-emerald-600 text-white'}`}>
+            {working}/{tested.length} fonctionnent
+          </span>
+          {collapsible && <ChevronDown className={`h-4 w-4 text-slate-500 transition-transform ${open ? 'rotate-180' : ''}`} />}
         </span>
-      </div>
+      </button>
+      {open && (<>
       <ul className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
         {report.tests.map((test) => (
           <li key={test.id} className="flex items-start gap-2 rounded-lg border border-slate-200 bg-white px-2.5 py-2">
@@ -41,6 +49,7 @@ export const FunctionalTestsCard: React.FC<{ report: FunctionalTestReport }> = (
       <p className="mt-2 text-[10px] text-slate-400">
         Testé sur le téléphone le {new Date(report.ranAt).toLocaleString('fr-MA', { timeZone: 'Africa/Casablanca', dateStyle: 'short', timeStyle: 'short' })} en {Math.round(report.durationMs / 1000)} s.
       </p>
+      </>)}
     </div>
   );
 };
